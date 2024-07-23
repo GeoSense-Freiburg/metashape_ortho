@@ -97,7 +97,7 @@ class MetashapeProcessor:
         print(f"Renamed folder to: {processed_folder}")
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
+    if len(sys.argv) != 1:
         print("Usage: python3 pipeline.py <input_folder>")
         sys.exit(1)
 
@@ -105,5 +105,3 @@ if __name__ == "__main__":
 
     processor = MetashapeProcessor(input_folder)
     processor.process_folders()
-
-    print("script loaded successfull")
