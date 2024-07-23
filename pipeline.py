@@ -29,7 +29,7 @@ class MetashapeChunkProcessor:
 
     def build_point_cloud(self):
         print(f"Building point cloud for chunk: {self.chunk.label}")
-        self.chunk.buildPointCloud(downscale=2)
+        self.chunk.buildPointCloud()
 
     def build_model(self):
         print(f"Building model for chunk: {self.chunk.label}")
