@@ -1,6 +1,9 @@
-import Metashape
 import os
 import sys
+
+# Add Metashape Python module to the system path
+sys.path.append('/opt/metashape-pro/python')
+import Metashape
 
 class MetashapeProject:
     def __init__(self, project_path):
@@ -95,11 +98,13 @@ class MetashapeProcessor:
         print(f"Renamed folder to: {processed_folder}")
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python3 process_images.py <input_folder>")
-        sys.exit(1)
+    # if len(sys.argv) != 2:
+    #     print("Usage: python3 process_images.py <input_folder>")
+    #     sys.exit(1)
 
-    input_folder = sys.argv[1]
+    # input_folder = sys.argv[1]
 
-    processor = MetashapeProcessor(input_folder)
-    processor.process_folders()
+    # processor = MetashapeProcessor(input_folder)
+    # processor.process_folders()
+
+    print("script loaded successfull")
