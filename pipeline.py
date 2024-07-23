@@ -24,7 +24,7 @@ class MetashapeChunkProcessor:
 
     def align_photos(self):
         print(f"Aligning photos for chunk: {self.chunk.label}")
-        self.chunk.matchPhotos(accuracy=Metashape.HighAccuracy, preselection=Metashape.ReferencePreselection)
+        self.chunk.matchPhotos(accuracy=0, preselection=Metashape.ReferencePreselection)
         self.chunk.alignCameras()
 
     def build_point_cloud(self):
