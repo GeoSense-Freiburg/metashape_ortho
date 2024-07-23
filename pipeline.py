@@ -75,7 +75,7 @@ class MetashapeProcessor:
             for subfolder_name in sorted(os.listdir(photos_dir)):
                 subfolder_path = os.path.join(photos_dir, subfolder_name)
                 if os.path.isdir(subfolder_path):
-                    image_list = [os.path.join(subfolder_path, file_name) for file_name in os.listdir(subfolder_path) if file_name.endswith(".jpg")]
+                    image_list = [os.path.join(subfolder_path, file_name) for file_name in os.listdir(subfolder_path) if file_name.lower().endswith(".jpg")]
                     if not image_list:
                         continue
                     
