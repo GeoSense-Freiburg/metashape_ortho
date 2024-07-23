@@ -24,12 +24,12 @@ class MetashapeChunkProcessor:
 
     def align_photos(self):
         print(f"Aligning photos for chunk: {self.chunk.label}")
-        self.chunk.matchPhotos(accuracy=0, preselection=Metashape.ReferencePreselection)
+        self.chunk.matchPhotos(downscale=1, preselection=Metashape.ReferencePreselection)
         self.chunk.alignCameras()
 
     def build_point_cloud(self):
         print(f"Building point cloud for chunk: {self.chunk.label}")
-        self.chunk.buildDenseCloud(quality=Metashape.MediumQuality, filter=Metashape.AggressiveFiltering)
+        self.chunk.buildPointCloud(quality=Metashape.MediumQuality, filter=Metashape.AggressiveFiltering)
 
     def build_model(self):
         print(f"Building model for chunk: {self.chunk.label}")
