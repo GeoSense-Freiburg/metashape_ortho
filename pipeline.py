@@ -1,8 +1,7 @@
 import os
 import sys
-
-# Add Metashape Python module to the system path
-sys.path.append('/opt/metashape-pro/python')
+# Metashape should be installed in your local environment (best with python 3.9)
+# follow: https://agisoft.freshdesk.com/support/solutions/articles/31000148930-how-to-install-metashape-stand-alone-python-module
 import Metashape
 
 class MetashapeProject:
@@ -98,13 +97,13 @@ class MetashapeProcessor:
         print(f"Renamed folder to: {processed_folder}")
 
 if __name__ == "__main__":
-    # if len(sys.argv) != 2:
-    #     print("Usage: python3 process_images.py <input_folder>")
-    #     sys.exit(1)
+    if len(sys.argv) != 2:
+        print("Usage: python3 pipeline.py <input_folder>")
+        sys.exit(1)
 
-    # input_folder = sys.argv[1]
+    input_folder = sys.argv[1]
 
-    # processor = MetashapeProcessor(input_folder)
-    # processor.process_folders()
+    processor = MetashapeProcessor(input_folder)
+    processor.process_folders()
 
     print("script loaded successfull")
