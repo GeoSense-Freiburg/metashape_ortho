@@ -29,11 +29,11 @@ class MetashapeChunkProcessor:
 
     def build_point_cloud(self):
         print(f"Building point cloud for chunk: {self.chunk.label}")
-        self.chunk.buildPointCloud(quality=Metashape.MediumQuality, filter=Metashape.AggressiveFiltering)
+        self.chunk.buildPointCloud()
 
     def build_model(self):
         print(f"Building model for chunk: {self.chunk.label}")
-        self.chunk.buildModel(surface=Metashape.HeightField, interpolation=Metashape.EnabledInterpolation)
+        self.chunk.buildModel(surface_type=Metashape.HeightField)
 
     def smooth_model(self):
         print(f"Smoothing model for chunk: {self.chunk.label}")
@@ -45,7 +45,7 @@ class MetashapeChunkProcessor:
 
     def export_orthomosaic(self, export_folder):
         orthomosaic_path = os.path.join(export_folder, f"{self.chunk.label}.tif")
-        self.chunk.exportOrthomosaic(orthomosaic_path, image_format=Metashape.ImageFormatTIFF)
+        self.chunk.exportRaster(orthomosaic_path, image_format=Metashape.ImageFormatTIFF)
         print(f"Exported orthomosaic to {orthomosaic_path}")
 
 class MetashapeProcessor:
@@ -82,12 +82,24 @@ class MetashapeProcessor:
                     chunk = project.add_chunk(subfolder_name, image_list)
                     processor = MetashapeChunkProcessor(chunk)
                     processor.align_photos()
+                    # Save the project file
+                    project.save()
                     processor.build_point_cloud()
+                    # Save the project file
+                    project.save()
                     processor.build_model()
+                    # Save the project file
+                    project.save()
                     processor.smooth_model()
+                    # Save the project file
+                    project.save()
                     processor.build_orthomosaic()
+                    # Save the project file
+                    project.save()
                     processor.export_orthomosaic(export_folder)
-
+                    # Save the project file
+                    project.save()
+                    
         # Save the project file
         project.save()
         
