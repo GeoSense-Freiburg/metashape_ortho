@@ -105,5 +105,3 @@ if __name__ == "__main__":
 
     processor = MetashapeProcessor(input_folder)
     processor.process_folders()
-
-    print("script loaded successfull")
