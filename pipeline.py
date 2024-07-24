@@ -1,5 +1,6 @@
 import os
 import sys
+from datetime import datetime
 # Metashape should be installed in your local environment (best with python 3.9)
 # follow: https://agisoft.freshdesk.com/support/solutions/articles/31000148930-how-to-install-metashape-stand-alone-python-module
 import Metashape
@@ -128,7 +129,7 @@ class MetashapeProcessor:
 
         # Define the path for the project file
         project_path = os.path.join(folder_path, "project.psx")
-        project = Metashape.Document()
+        project = Metashape.app.Document()
         project.save(project_path)
 
         # Locate the "photos" directory within the "_unprocessed" folder
@@ -142,31 +143,39 @@ class MetashapeProcessor:
                         continue
                     
                     print("\n\n----Adding photos to individual chunk----\n\n")
+                    print_timestamp()
                     chunk = project.add_chunk(subfolder_name, image_list)
                     processor = MetashapeChunkProcessor(chunk)
 
+                    print_timestamp()
                     processor.align_photos()
                     project.save()
 
+                    print_timestamp()
                     processor.build_depth_maps()
                     project.save()
 
+                    print_timestamp()
                     processor.build_model()
                     project.save()
 
                     has_transform = chunk.transform.scale and chunk.transform.rotation and chunk.transform.translation
 
                     if has_transform:
+                        print_timestamp()
                         processor.build_point_cloud()
                         project.save()
 
+                        print_timestamp()
                         processor.smooth_model()
                         project.save()
 
+                        print_timestamp()
                         processor.build_orthomosaic()
                         project.save()
 
                     # export all desired files
+                    print_timestamp()
                     processor.export_raster(export_folder)
                     project.save()
                     
@@ -184,6 +193,31 @@ if __name__ == "__main__":
         sys.exit(1)
 
     input_folder = sys.argv[1]
+
+    # Initialize the previous timestamp as None
+    previous_timestamp = None
+
+    def print_timestamp():
+        global previous_timestamp
+        # Get the current time
+        now = datetime.now()
+        
+        # Format the current timestamp
+        formatted_timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Calculate the elapsed time
+        if previous_timestamp is not None:
+            elapsed_time = now - previous_timestamp
+            formatted_elapsed_time = str(elapsed_time)
+        else:
+            formatted_elapsed_time = "N/A"
+        
+        # Print the current timestamp and elapsed time
+        print(f"Current Timestamp: {formatted_timestamp}")
+        print(f"Time elapsed since last timestamp: {formatted_elapsed_time}")
+        
+        # Update the previous timestamp
+        previous_timestamp = now
 
     processor = MetashapeProcessor(input_folder)
     processor.process_folders()
