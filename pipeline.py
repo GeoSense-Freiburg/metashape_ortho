@@ -54,7 +54,7 @@ class MetashapeProject:
     def add_chunk(self, chunk_name, image_list):
         chunk = self.doc.addChunk()
         chunk.label = chunk_name
-        chunk.addPhotos(image_list)
+        chunk.addPhotos(image_list, load_xmp_accuracy=True, load_rpc_txt=True)
         print(str(len(chunk.cameras)) + " images loaded")
         return chunk
 
