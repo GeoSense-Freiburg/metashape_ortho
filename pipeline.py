@@ -102,6 +102,15 @@ class MetashapeChunkProcessor:
         #     chunk.exportRaster(output_folder + '/dem.tif', source_data = Metashape.ElevationData)
 
         if self.chunk.orthomosaic:
+            # hier muss man noch etwas anpassen, da es beim schreiben zu einem OSError kommt:
+            # doc.chunk.exportRaster("/mnt/gsdata/projects/other/agisoft_script_test/testflight_1_unprocessed/testortho.tiff", source_data=Metashape.OrthomosaicData, image_compression=Metashape.ImageCompression())
+            # ExportRaster: path = /mnt/gsdata/projects/other/agisoft_script_test/testflight_1_unprocessed/testortho.tiff
+            # generating 33892 x 12515 raster in 1 x 1 tiles
+            # libtiff error: Write error at scanline 8384
+            # libtiff error: Error writing TIFF header
+            # Traceback (most recent call last):
+            # File "<stdin>", line 1, in <module>
+            # OSError: Can't write file: Permission denied (13): /mnt/gsdata/projects/other/agisoft_script_test/testflight_1_unprocessed/testortho.tiff
             self.chunk.exportRaster(ortho_path, source_data = Metashape.OrthomosaicData)
             print(f"\n----\nExported orthomosaic to {ortho_path}")
 
