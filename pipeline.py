@@ -4,6 +4,44 @@ import sys
 # follow: https://agisoft.freshdesk.com/support/solutions/articles/31000148930-how-to-install-metashape-stand-alone-python-module
 import Metashape
 
+# Checking compatibility
+compatible_major_version = "2.1"
+found_major_version = ".".join(Metashape.app.version.split('.')[:2])
+if found_major_version != compatible_major_version:
+    raise Exception("Incompatible Metashape version: {} != {}".format(found_major_version, compatible_major_version))
+
+# <?xml version="1.0" encoding="UTF-8"?>
+# <batchjobs version="2.1.1" save_project="true">
+#   <job name="AlignPhotos" target="all">
+#     <downscale>0</downscale>
+#     <mask_tiepoints>false</mask_tiepoints>
+#   </job>
+#   <job name="BuildPointCloud" target="all">
+#     <downscale>2</downscale>
+#     <reuse_depth>true</reuse_depth>
+#   </job>
+#   <job name="BuildModel" target="all">
+#     <reuse_depth>true</reuse_depth>
+#     <source_data>1</source_data>
+#     <surface_type>1</surface_type>
+#   </job>
+#   <job name="SmoothModel" target="all">
+#     <strength>6</strength>
+#   </job>
+#   <job name="BuildOrthomosaic" target="all">
+#     <projection>
+#       <crs>GEOGCS["WGS 84",DATUM["World Geodetic System 1984 ensemble",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],TOWGS84[0,0,0,0,0,0,0],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9102"]],AUTHORITY["EPSG","4326"]]</crs>
+#       <transform>1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</transform>
+#       <surface>0</surface>
+#       <radius>1</radius>
+#     </projection>
+#   </job>
+#   <job name="ExportOrthomosaic" target="all">
+#     <image_format>2</image_format>
+#     <path>{projectfolder}/{chunklabel}.tif</path>
+#   </job>
+# </batchjobs>
+
 class MetashapeProject:
     def __init__(self, project_path):
         self.doc = Metashape.Document()
@@ -16,6 +54,7 @@ class MetashapeProject:
         chunk = self.doc.addChunk()
         chunk.label = chunk_name
         chunk.addPhotos(image_list)
+        print(str(len(chunk.cameras)) + " images loaded")
         return chunk
 
 class MetashapeChunkProcessor:
@@ -23,30 +62,52 @@ class MetashapeChunkProcessor:
         self.chunk = chunk
 
     def align_photos(self):
-        print(f"Aligning photos for chunk: {self.chunk.label}")
+        print(f"\n----\nAligning photos for chunk: {self.chunk.label}")
         self.chunk.matchPhotos(downscale=0, mask_tiepoints=False)
         self.chunk.alignCameras()
 
+    def build_depth_maps(self):
+        print(f"\n----\nBuilding Depth Maps for chunk: {self.chunk.label}")
+        self.chunk.buildDepthMaps(downscale = 2, filter_mode = Metashape.MildFiltering)
+
     def build_point_cloud(self):
-        print(f"Building point cloud for chunk: {self.chunk.label}")
+        print(f"\n----\nBuilding point cloud for chunk: {self.chunk.label}")
         self.chunk.buildPointCloud()
 
     def build_model(self):
-        print(f"Building model for chunk: {self.chunk.label}")
-        self.chunk.buildModel(surface_type=Metashape.HeightField)
+        print(f"\n----\nBuilding model for chunk: {self.chunk.label}")
+        self.chunk.buildModel(source_data = Metashape.DepthMapsData)
 
     def smooth_model(self):
-        print(f"Smoothing model for chunk: {self.chunk.label}")
+        print(f"\n----\nSmoothing model for chunk: {self.chunk.label}")
         self.chunk.smoothModel(strength=6)
 
     def build_orthomosaic(self):
-        print(f"Building orthomosaic for chunk: {self.chunk.label}")
+        print(f"\n----\nBuilding orthomosaic for chunk: {self.chunk.label}")
         self.chunk.buildOrthomosaic(surface_data=Metashape.DataSource.ModelData, blending=Metashape.MosaicBlending)
 
-    def export_orthomosaic(self, export_folder):
-        orthomosaic_path = os.path.join(export_folder, f"{self.chunk.label}.tif")
-        self.chunk.exportRaster(orthomosaic_path, image_format=Metashape.ImageFormatTIFF)
-        print(f"Exported orthomosaic to {orthomosaic_path}")
+    def export_raster(self, export_folder):
+        # export results
+        ortho_path = os.path.join(export_folder, f"{self.chunk.label}_orthomosaic.tif")
+        self.chunk.exportReport(export_folder + '/report.pdf')
+
+        # if chunk.model:
+        #     chunk.exportModel(output_folder + '/model.obj')
+
+        # if chunk.point_cloud:
+        #     chunk.exportPointCloud(output_folder + '/point_cloud.las', source_data = Metashape.PointCloudData)
+
+        # if chunk.elevation:
+        #     chunk.exportRaster(output_folder + '/dem.tif', source_data = Metashape.ElevationData)
+
+        if self.chunk.orthomosaic:
+            self.chunk.exportRaster(ortho_path, source_data = Metashape.OrthomosaicData)
+            print(f"\n----\nExported orthomosaic to {ortho_path}")
+
+    # def export_orthomosaic(self, export_folder):
+    #     orthomosaic_path = os.path.join(export_folder, f"{self.chunk.label}.tif")
+    #     self.chunk.exportRaster(orthomosaic_path, image_format=Metashape.ImageFormatTIFF)
+    #     print(f"\n----\nExported orthomosaic to {orthomosaic_path}")
 
 class MetashapeProcessor:
     def __init__(self, input_folder):
@@ -79,25 +140,33 @@ class MetashapeProcessor:
                     if not image_list:
                         continue
                     
+                    print("\n\n----Adding photos to individual chunk----\n\n")
                     chunk = project.add_chunk(subfolder_name, image_list)
                     processor = MetashapeChunkProcessor(chunk)
+
                     processor.align_photos()
-                    # Save the project file
                     project.save()
-                    processor.build_point_cloud()
-                    # Save the project file
+
+                    processor.build_depth_maps()
                     project.save()
+
                     processor.build_model()
-                    # Save the project file
                     project.save()
-                    processor.smooth_model()
-                    # Save the project file
-                    project.save()
-                    processor.build_orthomosaic()
-                    # Save the project file
-                    project.save()
-                    processor.export_orthomosaic(export_folder)
-                    # Save the project file
+
+                    has_transform = chunk.transform.scale and chunk.transform.rotation and chunk.transform.translation
+
+                    if has_transform:
+                        processor.build_point_cloud()
+                        project.save()
+
+                        processor.smooth_model()
+                        project.save()
+
+                        processor.build_orthomosaic()
+                        project.save()
+
+                    # export all desired files
+                    processor.export_raster(export_folder)
                     project.save()
                     
         # Save the project file
