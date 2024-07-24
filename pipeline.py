@@ -129,7 +129,7 @@ class MetashapeProcessor:
 
         # Define the path for the project file
         project_path = os.path.join(folder_path, "project.psx")
-        project = Metashape.app.Document()
+        project = Metashape.Document()
         project.save(project_path)
 
         # Locate the "photos" directory within the "_unprocessed" folder
