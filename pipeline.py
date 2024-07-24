@@ -84,7 +84,7 @@ class MetashapeChunkProcessor:
 
     def build_orthomosaic(self):
         print(f"\n----\nBuilding orthomosaic for chunk: {self.chunk.label}")
-        self.chunk.buildOrthomosaic(surface_data=Metashape.DataSource.ModelData, blending=Metashape.MosaicBlending)
+        self.chunk.buildOrthomosaic(surface_data=Metashape.DataSource.ModelData)
 
     def export_raster(self, export_folder):
         # export results
