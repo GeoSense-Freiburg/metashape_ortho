@@ -4,6 +4,7 @@ from datetime import datetime
 # Metashape should be installed in your local environment (best with python 3.9)
 # follow: https://agisoft.freshdesk.com/support/solutions/articles/31000148930-how-to-install-metashape-stand-alone-python-module
 import Metashape
+import shutil
 
 # Checking compatibility
 compatible_major_version = "2.1"
@@ -43,6 +44,17 @@ if found_major_version != compatible_major_version:
 #   </job>
 # </batchjobs>
 
+# global functions
+def move_file(source_path, destination_path):
+        try:
+            # Move the file from source_path to destination_path
+            shutil.move(source_path, destination_path)
+            print(f"File moved successfully from {source_path} to {destination_path}")
+        except Exception as e:
+            print(f"Error moving file: {e}")
+
+
+# metashape project
 class MetashapeProject:
     def __init__(self, project_path):
         self.doc = Metashape.Document()
@@ -86,9 +98,14 @@ class MetashapeChunkProcessor:
     def build_orthomosaic(self):
         print(f"\n----\nBuilding orthomosaic for chunk: {self.chunk.label}")
         self.chunk.buildOrthomosaic(surface_data=Metashape.DataSource.ModelData)
-
+   
     def export_raster(self, export_folder):
+        # for now, the export must be done locally and moved to the NAS as of some
+        # unresolved OSError issues...
+        ortho_path_tmp = f"/tmp/tmp_orthos/{self.chunk.label}_orthomosaic.tif"
+
         # export results
+        # correct path on NAS
         ortho_path = os.path.join(export_folder, f"{self.chunk.label}_orthomosaic.tif")
         self.chunk.exportReport(export_folder + '/report.pdf')
 
@@ -103,8 +120,10 @@ class MetashapeChunkProcessor:
 
         if self.chunk.orthomosaic:
             compression = Metashape.ImageCompression()
-            compression.tiff_compression = Metashape.ImageCompression.TiffCompressionLZW
-            #compression.jpeg_quality = 90
+            compression.tiff_tiled = False
+            compression.tiff_overviews = True
+            compression.tiff_compression = Metashape.ImageCompression.TiffCompressionJPEG
+            compression.jpeg_quality = 90
 
             out_projection = Metashape.OrthoProjection()
             out_projection.type = Metashape.OrthoProjection.Type.Planar
@@ -119,17 +138,15 @@ class MetashapeChunkProcessor:
             # Traceback (most recent call last):
             # File "<stdin>", line 1, in <module>
             # OSError: Can't write file: Permission denied (13): /mnt/gsdata/projects/other/agisoft_script_test/testflight_1_unprocessed/testortho.tiff
-            self.chunk.exportRaster(path = ortho_path, 
+            self.chunk.exportRaster(path = ortho_path_tmp, 
                                     source_data = Metashape.OrthomosaicData,
-                                    format = Metashape.RasterFormatTiles,
-                                    image_format = Metashape.ImageFormatTIFF,
                                     image_compression = compression,
                                     save_alpha = False,
                                     white_background = False,
-                                    #resolution_x = 0.10,
-                                    #resolution_y = 0.10,
                                     projection = out_projection)
-            print(f"\n----\nExported orthomosaic to {ortho_path}")
+            print(f"\n----\nExported orthomosaic to {ortho_path_tmp}")
+            print(f"\n**Now moving exported orthomosaic to NAS destination: {ortho_path}")
+            move_file(ortho_path_tmp, ortho_path)
 
     # def export_orthomosaic(self, export_folder):
     #     orthomosaic_path = os.path.join(export_folder, f"{self.chunk.label}.tif")
