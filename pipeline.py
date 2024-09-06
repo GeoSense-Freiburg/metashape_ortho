@@ -4,6 +4,7 @@ from datetime import datetime
 # Metashape should be installed in your local environment (best with python 3.9)
 # follow: https://agisoft.freshdesk.com/support/solutions/articles/31000148930-how-to-install-metashape-stand-alone-python-module
 import Metashape
+# https://www.agisoft.com/pdf/metashape_python_api_2_1_2.pdf
 import shutil
 
 # Checking compatibility
