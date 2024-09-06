@@ -102,6 +102,14 @@ class MetashapeChunkProcessor:
         #     chunk.exportRaster(output_folder + '/dem.tif', source_data = Metashape.ElevationData)
 
         if self.chunk.orthomosaic:
+            compression = Metashape.ImageCompression()
+            compression.tiff_compression = Metashape.ImageCompression.TiffCompressionLZW
+            #compression.jpeg_quality = 90
+
+            out_projection = Metashape.OrthoProjection()
+            out_projection.type = Metashape.OrthoProjection.Type.Planar
+            out_projection.crs = Metashape.CoordinateSystem("EPSG::4326")
+
             # hier muss man noch etwas anpassen, da es beim schreiben zu einem OSError kommt:
             # doc.chunk.exportRaster("/mnt/gsdata/projects/other/agisoft_script_test/testflight_1_unprocessed/testortho.tiff", source_data=Metashape.OrthomosaicData, image_compression=Metashape.ImageCompression())
             # ExportRaster: path = /mnt/gsdata/projects/other/agisoft_script_test/testflight_1_unprocessed/testortho.tiff
@@ -111,7 +119,16 @@ class MetashapeChunkProcessor:
             # Traceback (most recent call last):
             # File "<stdin>", line 1, in <module>
             # OSError: Can't write file: Permission denied (13): /mnt/gsdata/projects/other/agisoft_script_test/testflight_1_unprocessed/testortho.tiff
-            self.chunk.exportRaster(ortho_path, source_data = Metashape.OrthomosaicData)
+            self.chunk.exportRaster(path = ortho_path, 
+                                    source_data = Metashape.OrthomosaicData,
+                                    format = Metashape.RasterFormatTiles,
+                                    image_format = Metashape.ImageFormatTIFF,
+                                    image_compression = compression,
+                                    save_alpha = False,
+                                    white_background = False,
+                                    #resolution_x = 0.10,
+                                    #resolution_y = 0.10,
+                                    projection = out_projection)
             print(f"\n----\nExported orthomosaic to {ortho_path}")
 
     # def export_orthomosaic(self, export_folder):
