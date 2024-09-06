@@ -69,6 +69,13 @@ class MetashapeProject:
         chunk.addPhotos(image_list, load_xmp_accuracy=True, load_rpc_txt=True)
         print(str(len(chunk.cameras)) + " images loaded")
         return chunk
+    
+    def close(self):
+        # Save the project before closing
+        self.doc.save()
+        # Close the project
+        self.doc.close()
+        print(f"Project at {self.project_path} has been closed successfully.")
 
 class MetashapeChunkProcessor:
     def __init__(self, chunk):
@@ -142,7 +149,7 @@ class MetashapeChunkProcessor:
                                     source_data = Metashape.OrthomosaicData,
                                     image_compression = compression,
                                     save_alpha = False,
-                                    white_background = False,
+                                    white_background = True,
                                     projection = out_projection)
             print(f"\n----\nExported orthomosaic to {ortho_path_tmp}")
             print(f"\n**Now moving exported orthomosaic to NAS destination: {ortho_path}")
@@ -168,6 +175,7 @@ class MetashapeProcessor:
     
     def process_folders(self):
         for folder_name in sorted(os.listdir(self.input_folder)):
+            print("Looping through all <..._unprocessed> folders")
             folder_path = os.path.join(self.input_folder, folder_name)
             if os.path.isdir(folder_path) and "_unprocessed" in folder_name:
                 self.process_unprocessed_folder(folder_path)
@@ -233,6 +241,8 @@ class MetashapeProcessor:
                     
         # Save the project file
         project.save()
+        # close the project file
+        project.close()
         
         # Rename the processed folder from _unprocessed to _processed
         processed_folder = folder_path.replace("_unprocessed", "_processed")
