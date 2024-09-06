@@ -137,8 +137,17 @@ class MetashapeChunkProcessor:
     #     print(f"\n----\nExported orthomosaic to {orthomosaic_path}")
 
 class MetashapeProcessor:
-    def __init__(self, input_folder):
+    def __init__(self, input_folder, use_both_gpu=False, use_gpu_index=0):
         self.input_folder = input_folder
+        if use_both_gpu:
+            print("***using both GPUs***")
+            # Enable both GPUs
+            Metashape.app.gpu_mask = (1 << 0) | (1 << 1)  # This enables GPU 0 and GPU 1
+        else:
+            print(f"***using GPU with index #{use_gpu_index}***")
+            # Set the GPU mask based on the passed GPU index
+            Metashape.app.gpu_mask = 1 << use_gpu_index  # Shift bit to select GPU
+        Metashape.app.cpu_enable = False  # Optionally disable CPU processing
     
     def process_folders(self):
         for folder_name in sorted(os.listdir(self.input_folder)):
