@@ -115,7 +115,7 @@ class MetashapeChunkProcessor:
         # export results
         # correct path on NAS
         ortho_path = os.path.join(export_folder, f"{self.chunk.label}_orthomosaic.tif")
-        self.chunk.exportReport(export_folder + '/report.pdf')
+        self.chunk.exportReport(export_folder + f"/{self.chunk.label}_report.pdf")
 
         # if chunk.model:
         #     chunk.exportModel(output_folder + '/model.obj')
