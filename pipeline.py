@@ -71,13 +71,7 @@ class MetashapeProject:
         print(str(len(chunk.cameras)) + " images loaded")
         return chunk
     
-    def close(self):
-        # Save the project before closing
-        self.doc.save()
-        # Close the project
-        self.doc.close()
-        print(f"Project at {self.project_path} has been closed successfully.")
-
+    
 class MetashapeChunkProcessor:
     def __init__(self, chunk):
         self.chunk = chunk
@@ -243,8 +237,6 @@ class MetashapeProcessor:
                     
         # Save the project file
         project.save()
-        # close the project file
-        project.close()
         
         # Rename the processed folder from _unprocessed to _processed
         processed_folder = folder_path.replace("_unprocessed", "_processed")
