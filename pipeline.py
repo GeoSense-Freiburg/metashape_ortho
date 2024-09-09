@@ -128,11 +128,12 @@ class MetashapeChunkProcessor:
 
         if self.chunk.orthomosaic:
             compression = Metashape.ImageCompression()
-            compression.tiff_tiled = False
-            compression.tiff_overviews = True
             compression.tiff_compression = Metashape.ImageCompression.TiffCompressionJPEG
             compression.jpeg_quality = 90
-
+            compression.tiff_big = True
+            compression.tiff_overviews = True
+            compression.tiff_tiled = True
+            
             out_projection = Metashape.OrthoProjection()
             out_projection.type = Metashape.OrthoProjection.Type.Planar
             out_projection.crs = Metashape.CoordinateSystem("EPSG::4326")
