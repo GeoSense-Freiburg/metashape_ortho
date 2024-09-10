@@ -244,6 +244,7 @@ class MetashapeProcessor:
         print(f"Renamed folder to: {processed_folder}")
 
 if __name__ == "__main__":
+    # test
     if len(sys.argv) != 4:
         print("Usage: python3 pipeline.py <input_folder> <use_both_gpu> <use_gpu_index>")
         sys.exit(1)
