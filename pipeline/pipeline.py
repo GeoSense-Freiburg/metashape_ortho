@@ -244,23 +244,15 @@ class MetashapeProcessor:
         print(f"Renamed folder to: {processed_folder}")
 
 if __name__ == "__main__":
-<<<<<<< HEAD
-    if len(sys.argv) != 1:
-        print("Usage: python3 pipeline.py <input_folder>")
-=======
     # test
     if len(sys.argv) != 4:
         print("Usage: python3 pipeline.py <input_folder> <use_both_gpu> <use_gpu_index>")
->>>>>>> updated_references
         sys.exit(1)
 
     input_folder = sys.argv[1]
     use_both_gpu = sys.argv[2]
     use_gpu_index = sys.argv[3]
 
-<<<<<<< HEAD
-    processor = MetashapeProcessor(input_folder)
-=======
     # Initialize the previous timestamp as None
     previous_timestamp = None
 
@@ -287,5 +279,4 @@ if __name__ == "__main__":
         previous_timestamp = now
 
     processor = MetashapeProcessor(input_folder, use_both_gpu, use_gpu_index)
->>>>>>> updated_references
     processor.process_folders()
