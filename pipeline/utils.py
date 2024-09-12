@@ -1,34 +1,36 @@
 import os
+import sys
 import shutil
 import logging
 from datetime import datetime
 
+# Set up a logger that outputs both to the console and to a file
 def setup_logger(log_file):
-    """
-    Configures logging to both console and file.
-    Args:
-        log_file (str): Path to the log file.
-    """
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
+    logger = logging.getLogger()  # Root logger
 
-    # File handler
-    file_handler = logging.FileHandler(log_file)
-    file_handler.setLevel(logging.DEBUG)
+    # Check if the logger already has handlers to avoid duplicate logs
+    if not logger.hasHandlers():
+        logger.setLevel(logging.DEBUG)
 
-    # Console handler
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)
+        # Create a file handler for logging to a file
+        file_handler = logging.FileHandler(log_file)
+        file_handler.setLevel(logging.DEBUG)
 
-    # Formatter
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        # Create a console handler for logging to the console
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.INFO)
 
-    file_handler.setFormatter(formatter)
-    console_handler.setFormatter(formatter)
+        # Define the log format
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
+        # Add formatter to both handlers
+        file_handler.setFormatter(formatter)
+        console_handler.setFormatter(formatter)
 
+        # Add the handlers to the logger
+        logger.addHandler(file_handler)
+        logger.addHandler(console_handler)
+    
     return logger
 
 def create_log_file(input_folder):

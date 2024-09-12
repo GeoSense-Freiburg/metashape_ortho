@@ -84,29 +84,32 @@ class MetashapeProcessor:
 
         # Configure GPUs based on the user's choice
         if self.gpu_option == 'both':
-            logging.info("Using both GPUs (0 and 1).")
+            self.logger.info("Using both GPUs (0 and 1).")
             Metashape.app.gpu_mask = (1 << 0) | (1 << 1)  # Enable GPU 0 and GPU 1
         elif self.gpu_option == '0':
-            logging.info("Using GPU 0 only.")
+            self.logger.info("Using GPU 0 only.")
             Metashape.app.gpu_mask = 1 << 0  # Enable only GPU 0
         elif self.gpu_option == '1':
-            logging.info("Using GPU 1 only.")
+            self.logger.info("Using GPU 1 only.")
             Metashape.app.gpu_mask = 1 << 1  # Enable only GPU 1
         else:
             raise ValueError("Invalid GPU option. Use '0', '1', or 'both'.")
 
         # Optionally enable or disable CPU processing
         Metashape.app.cpu_enable = self.cpu_enabled
-        logging.info(f"CPU enabled: {self.cpu_enabled}")
+        self.logger.info(f"CPU enabled: {self.cpu_enabled}")
 
     def process_folders(self):
         for folder_name in sorted(os.listdir(self.input_folder)):
             folder_path = os.path.join(self.input_folder, folder_name)
             if os.path.isdir(folder_path) and "_unprocessed" in folder_name:
                 self.process_unprocessed_folder(folder_path)
+        
+        # Force log flush
+        logging.shutdown()
 
     def process_unprocessed_folder(self, folder_path):
-        logging.info(f"Processing folder: {folder_path}")
+        self.logger.info(f"Processing folder: {folder_path}")
         
         # Create an export directory inside the _unprocessed folder
         export_folder = os.path.join(folder_path, "export")
@@ -123,48 +126,60 @@ class MetashapeProcessor:
             for subfolder_name in sorted(os.listdir(photos_dir)):
                 subfolder_path = os.path.join(photos_dir, subfolder_name)
                 if os.path.isdir(subfolder_path):
-                    image_list = [os.path.join(subfolder_path, file_name) for file_name in os.listdir(subfolder_path) if file_name.lower().endswith(".jpg")]
-                    if not image_list:
-                        continue
-                    
-                    logging.info(f"Adding photos to chunk: {subfolder_name}")
-                    print_timestamp()
-                    chunk = project.add_chunk(subfolder_name, image_list)
-                    processor = MetashapeChunkProcessor(chunk)
+                    # Process RGB and multispectral images by their specific naming convention
+                    self.logger.info("Processing RGB and multispectral images by their specific naming convention")
+                    image_dict = {
+                        "RGB": [os.path.join(subfolder_path, file_name) for file_name in os.listdir(subfolder_path) if file_name.endswith("_D.JPG")],
+                        "NIR": [os.path.join(subfolder_path, file_name) for file_name in os.listdir(subfolder_path) if file_name.endswith("MS_NIR.TIF")],
+                        "RE": [os.path.join(subfolder_path, file_name) for file_name in os.listdir(subfolder_path) if file_name.endswith("MS_RE.TIF")],
+                        "R": [os.path.join(subfolder_path, file_name) for file_name in os.listdir(subfolder_path) if file_name.endswith("MS_R.TIF")],
+                        "G": [os.path.join(subfolder_path, file_name) for file_name in os.listdir(subfolder_path) if file_name.endswith("MS_G.TIF")],
+                    }
 
-                    print_timestamp()
-                    processor.align_photos()
-                    project.save()
-
-                    print_timestamp()
-                    processor.build_depth_maps()
-                    project.save()
-
-                    print_timestamp()
-                    processor.build_model()
-                    project.save()
-
-                    has_transform = chunk.transform.scale and chunk.transform.rotation and chunk.transform.translation
-
-                    if has_transform:
+                    for channel, image_list in image_dict.items():
+                        if not image_list:
+                            continue
+                        
+                        self.logger.info(f"Adding {channel} photos to chunk: {subfolder_name}_{channel}")
                         print_timestamp()
-                        processor.build_point_cloud()
+                        chunk_name = f"{subfolder_name}_{channel}"
+                        chunk = project.add_chunk(chunk_name, image_list)
+                        processor = MetashapeChunkProcessor(chunk)
+
+                        print_timestamp()
+                        processor.align_photos()
                         project.save()
 
                         print_timestamp()
-                        processor.smooth_model()
+                        processor.build_depth_maps()
                         project.save()
 
                         print_timestamp()
-                        processor.build_orthomosaic()
+                        processor.build_model()
                         project.save()
 
-                    # Export all desired files
-                    print_timestamp()
-                    processor.export_raster(export_folder)
-                    project.save()
-                    
+                        has_transform = chunk.transform.scale and chunk.transform.rotation and chunk.transform.translation
+
+                        if has_transform:
+                            print_timestamp()
+                            processor.build_point_cloud()
+                            project.save()
+
+                            print_timestamp()
+                            processor.smooth_model()
+                            project.save()
+
+                            print_timestamp()
+                            processor.build_orthomosaic()
+                            project.save()
+
+                        # Export orthomosaic for each channel (RGB, NIR, RE, R, G)
+                        print_timestamp()
+                        processor.export_raster(export_folder)
+                        project.save()
+                        
         # Rename the processed folder from _unprocessed to _processed
         processed_folder = folder_path.replace("_unprocessed", "_processed")
         os.rename(folder_path, processed_folder)
-        logging.info(f"Renamed folder to: {processed_folder}")
+        self.logger.info(f"Renamed folder to: {processed_folder}")
+
