@@ -2,6 +2,7 @@ import os
 import sys
 import shutil
 import logging
+import yaml
 from datetime import datetime
 
 # Set up a logger that outputs both to the console and to a file
@@ -64,25 +65,79 @@ def move_file(source_path, destination_path):
     except Exception as e:
         logging.error(f"Error moving file: {e}")
 
-def print_timestamp(previous_timestamp=None):
+def move_all_files(src_dir, dest_dir):
     """
-    Logs the current timestamp and time elapsed since the previous timestamp.
+    Move all files and subfolders from source directory to destination directory.
+    
     Args:
-        previous_timestamp (datetime, optional): Previous timestamp. Defaults to None.
-    
-    Returns:
-        datetime: Current timestamp.
+        src_dir (str): The source directory from where files and subfolders will be moved.
+        dest_dir (str): The destination directory where files and subfolders will be moved to.
+        
+    Raises:
+        FileNotFoundError: If the source directory doesn't exist.
+        Exception: If an error occurs during the file moving process.
     """
-    now = datetime.now()
-    formatted_timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
+    if not os.path.exists(src_dir):
+        raise FileNotFoundError(f"Source directory {src_dir} does not exist.")
     
-    if previous_timestamp:
-        elapsed_time = now - previous_timestamp
-        formatted_elapsed_time = str(elapsed_time)
-    else:
-        formatted_elapsed_time = "N/A"
+    if not os.path.exists(dest_dir):
+        os.makedirs(dest_dir)
+        logging.info(f"Created destination directory: {dest_dir}")
     
-    logging.info(f"Current Timestamp: {formatted_timestamp}")
-    logging.info(f"Time elapsed: {formatted_elapsed_time}")
+    # Iterate over all items in the source directory
+    for item in os.listdir(src_dir):
+        src_path = os.path.join(src_dir, item)
+        dest_path = os.path.join(dest_dir, item)
+
+        try:
+            if os.path.isdir(src_path):
+                # If it's a directory, move the entire directory
+                shutil.move(src_path, dest_path)
+                logging.info(f"Moved directory: {src_path} to {dest_path}")
+            else:
+                # If it's a file, move the file
+                shutil.move(src_path, dest_path)
+                logging.info(f"Moved file: {src_path} to {dest_path}")
+        except Exception as e:
+            logging.error(f"Error moving {src_path} to {dest_path}: {e}")
+            raise
+
+    logging.info(f"All files and subfolders moved from {src_dir} to {dest_dir}")
     
-    return now
+# def print_timestamp(previous_timestamp=None):
+#     """
+#     Logs the current timestamp and time elapsed since the previous timestamp.
+#     Args:
+#         previous_timestamp (datetime, optional): Previous timestamp. Defaults to None.
+    
+#     Returns:
+#         datetime: Current timestamp.
+#     """
+#     now = datetime.now()
+#     formatted_timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
+    
+#     if previous_timestamp:
+#         elapsed_time = now - previous_timestamp
+#         formatted_elapsed_time = str(elapsed_time)
+#     else:
+#         formatted_elapsed_time = "N/A"
+    
+#     logging.info(f"Current Timestamp: {formatted_timestamp}")
+#     logging.info(f"Time elapsed: {formatted_elapsed_time}")
+    
+#     return now
+
+def check_free_space(min_required_space_gb, folder):
+    """Check if there is enough free space on the disk."""
+    total, used, free = shutil.disk_usage(folder)
+    free_gb = free / (1024 ** 3)  # Convert to GB
+    if free_gb < min_required_space_gb:
+        raise RuntimeError(f"Not enough disk space. Required: {min_required_space_gb} GB, Available: {free_gb:.2f} GB.")
+    logging.info(f"Disk space check passed: {free_gb:.2f} GB available.")
+
+def load_config(config_file='config.yaml'):
+    if not os.path.exists(config_file):
+        raise FileNotFoundError(f"Config file {config_file} does not exist.")
+    with open(config_file, 'r') as file:
+        config = yaml.safe_load(file)
+    return config

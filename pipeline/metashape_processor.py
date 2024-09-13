@@ -1,7 +1,7 @@
 import os
 import Metashape
 import logging
-from pipeline.utils import print_timestamp, setup_logger, move_file
+from pipeline.utils import setup_logger, move_file, move_all_files
 from datetime import datetime
 
 class MetashapeProject:
@@ -49,7 +49,7 @@ class MetashapeChunkProcessor:
         self.chunk.buildOrthomosaic(surface_data=Metashape.DataSource.ModelData)
 
     def export_raster(self, export_folder):
-        ortho_path_tmp = f"/tmp/tmp_orthos/{self.chunk.label}_orthomosaic.tif"
+        #ortho_path_tmp = f"/tmp/tmp_orthos/{self.chunk.label}_orthomosaic.tif"
         ortho_path = os.path.join(export_folder, f"{self.chunk.label}_orthomosaic.tif")
 
         compression = Metashape.ImageCompression()
@@ -63,21 +63,22 @@ class MetashapeChunkProcessor:
         out_projection.type = Metashape.OrthoProjection.Type.Planar
         out_projection.crs = Metashape.CoordinateSystem("EPSG::4326")
 
-        self.chunk.exportRaster(path=ortho_path_tmp,
+        self.chunk.exportRaster(path=ortho_path,
                                 source_data=Metashape.OrthomosaicData,
                                 image_compression=compression,
                                 save_alpha=False,
                                 white_background=True,
                                 projection=out_projection)
 
-        logging.info(f"Exported orthomosaic to {ortho_path_tmp}")
-        move_file(ortho_path_tmp, ortho_path)
+        logging.info(f"Exported orthomosaic to {ortho_path}")
+        #move_file(ortho_path_tmp, ortho_path)
 
 class MetashapeProcessor:
-    def __init__(self, input_folder, log_file, gpu_option, cpu_enabled):
-        self.input_folder = input_folder
-        self.gpu_option = gpu_option
-        self.cpu_enabled = cpu_enabled
+    def __init__(self, config, log_file):
+        self.input_folder = config["input_folder"]
+        self.gpu_option = config["gpu_option"]
+        self.cpu_enabled = config["cpu_enabled"]
+        self.tmp_folder = config["tmp_folder"]
 
         # Set up logging
         self.logger = setup_logger(log_file)
@@ -111,12 +112,17 @@ class MetashapeProcessor:
     def process_unprocessed_folder(self, folder_path):
         self.logger.info(f"Processing folder: {folder_path}")
         
+        # create a tmp folder on pylos for processing
+        base_dir = os.path.basename(os.path.normpath(folder_path))
+        tmp_project_folder = os.path.join(self.tmp_folder, base_dir)
+        os.makedirs(tmp_project_folder, exist_ok=True)
+
         # Create an export directory inside the _unprocessed folder
-        export_folder = os.path.join(folder_path, "export")
+        export_folder = os.path.join(tmp_project_folder, "export")
         os.makedirs(export_folder, exist_ok=True)
 
         # Define the path for the project file
-        project_path = os.path.join(folder_path, "project.psx")
+        project_path = os.path.join(tmp_project_folder, "project.psx")
         project = MetashapeProject(project_path)
         project.save()
 
@@ -141,40 +147,40 @@ class MetashapeProcessor:
                             continue
                         
                         self.logger.info(f"Adding {channel} photos to chunk: {subfolder_name}_{channel}")
-                        print_timestamp()
+                        #
                         chunk_name = f"{subfolder_name}_{channel}"
                         chunk = project.add_chunk(chunk_name, image_list)
                         processor = MetashapeChunkProcessor(chunk)
 
-                        print_timestamp()
+                        #
                         processor.align_photos()
                         project.save()
 
-                        print_timestamp()
+                        #
                         processor.build_depth_maps()
                         project.save()
 
-                        print_timestamp()
+                        #
                         processor.build_model()
                         project.save()
 
                         has_transform = chunk.transform.scale and chunk.transform.rotation and chunk.transform.translation
 
                         if has_transform:
-                            print_timestamp()
+                            #
                             processor.build_point_cloud()
                             project.save()
 
-                            print_timestamp()
+                            #
                             processor.smooth_model()
                             project.save()
 
-                            print_timestamp()
+                            #
                             processor.build_orthomosaic()
                             project.save()
 
                         # Export orthomosaic for each channel (RGB, NIR, RE, R, G)
-                        print_timestamp()
+                        #
                         processor.export_raster(export_folder)
                         project.save()
                         
@@ -182,4 +188,7 @@ class MetashapeProcessor:
         processed_folder = folder_path.replace("_unprocessed", "_processed")
         os.rename(folder_path, processed_folder)
         self.logger.info(f"Renamed folder to: {processed_folder}")
+
+        # move all files
+        move_all_files(tmp_project_folder, folder_path)
 
