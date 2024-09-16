@@ -5,11 +5,25 @@ import logging
 import yaml
 from datetime import datetime
 
+# Redirect stdout and stderr to the logger
+class StreamToLogger:
+    def __init__(self, logger, log_level):
+        self.logger = logger
+        self.log_level = log_level
+        self.linebuf = ''
+
+    def write(self, buf):
+        for line in buf.rstrip().splitlines():
+            self.logger.log(self.log_level, line.rstrip())
+
+    def flush(self):
+        pass
+
 # Set up a logger that outputs both to the console and to a file
 def setup_logger(log_file):
     logger = logging.getLogger()  # Root logger
-
-    # Check if the logger already has handlers to avoid duplicate logs
+    
+    # Avoid adding handlers multiple times if logger is already set
     if not logger.hasHandlers():
         logger.setLevel(logging.DEBUG)
 
@@ -31,7 +45,11 @@ def setup_logger(log_file):
         # Add the handlers to the logger
         logger.addHandler(file_handler)
         logger.addHandler(console_handler)
-    
+
+        # Redirect stdout and stderr to the logger
+        sys.stdout = StreamToLogger(logger, logging.INFO)
+        sys.stderr = StreamToLogger(logger, logging.ERROR)
+
     return logger
 
 def create_log_file(input_folder):
