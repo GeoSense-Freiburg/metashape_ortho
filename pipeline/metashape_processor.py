@@ -1,7 +1,8 @@
 import os
 import Metashape
+import time
 import logging
-from pipeline.utils import setup_logger, move_file, move_all_files
+from pipeline.utils import setup_logger, move_file, move_all_files, remove_lockfile
 from datetime import datetime
 
 class MetashapeProject:
@@ -10,7 +11,10 @@ class MetashapeProject:
         self.project_path = project_path
 
     def save(self):
+        remove_lockfile(self.project_path)
         self.doc.save(self.project_path)
+        time.sleep(5)
+        remove_lockfile(self.project_path)
 
     def add_chunk(self, chunk_name, image_list):
         chunk = self.doc.addChunk()
@@ -143,46 +147,50 @@ class MetashapeProcessor:
                     }
 
                     for channel, image_list in image_dict.items():
-                        if not image_list:
-                            continue
-                        
-                        self.logger.info(f"Adding {channel} photos to chunk: {subfolder_name}_{channel}")
-                        #
-                        chunk_name = f"{subfolder_name}_{channel}"
-                        chunk = project.add_chunk(chunk_name, image_list)
-                        processor = MetashapeChunkProcessor(chunk)
-
-                        #
-                        processor.align_photos()
-                        project.save()
-
-                        #
-                        processor.build_depth_maps()
-                        project.save()
-
-                        #
-                        processor.build_model()
-                        project.save()
-
-                        has_transform = chunk.transform.scale and chunk.transform.rotation and chunk.transform.translation
-
-                        if has_transform:
+                        try:
+                            if not image_list:
+                                continue
+                            
+                            self.logger.info(f"Adding {channel} photos to chunk: {subfolder_name}_{channel}")
                             #
-                            processor.build_point_cloud()
+                            chunk_name = f"{subfolder_name}_{channel}"
+                            chunk = project.add_chunk(chunk_name, image_list)
+                            processor = MetashapeChunkProcessor(chunk)
+
+                            #
+                            processor.align_photos()
                             project.save()
 
                             #
-                            processor.smooth_model()
+                            processor.build_depth_maps()
                             project.save()
 
                             #
-                            processor.build_orthomosaic()
+                            processor.build_model()
                             project.save()
 
-                        # Export orthomosaic for each channel (RGB, NIR, RE, R, G)
-                        #
-                        processor.export_raster(export_folder)
-                        project.save()
+                            has_transform = chunk.transform.scale and chunk.transform.rotation and chunk.transform.translation
+
+                            if has_transform:
+                                #
+                                processor.build_point_cloud()
+                                project.save()
+
+                                #
+                                processor.smooth_model()
+                                project.save()
+
+                                #
+                                processor.build_orthomosaic()
+                                project.save()
+
+                            # Export orthomosaic for each channel (RGB, NIR, RE, R, G)
+                            #
+                            processor.export_raster(export_folder)
+                            project.save()
+                        except:
+                            print("Something wrong with the chunk...")
+                            pass
                         
         # Rename the processed folder from _unprocessed to _processed
         processed_folder = folder_path.replace("_unprocessed", "_processed")

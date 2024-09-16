@@ -21,6 +21,7 @@ class StreamToLogger:
 
 # Set up a logger that outputs both to the console and to a file
 def setup_logger(log_file):
+    print("setting up logger")
     logger = logging.getLogger()  # Root logger
     
     # Avoid adding handlers multiple times if logger is already set
@@ -159,3 +160,14 @@ def load_config(config_file='config.yaml'):
     with open(config_file, 'r') as file:
         config = yaml.safe_load(file)
     return config
+
+def remove_lockfile(project_path): #(if exist)
+    lockfile = project_path.replace(".psx", ".files/lock")
+
+    try:
+        os.remove(lockfile)
+        print(f"lockfile deleted")
+    except FileNotFoundError:
+        print(f"no lockfile")
+    except PermissionError:
+        print(f"Permission denied to delete lockfile")
