@@ -190,5 +190,5 @@ class MetashapeProcessor:
         self.logger.info(f"Renamed folder to: {processed_folder}")
 
         # move all files
-        move_all_files(tmp_project_folder, folder_path)
+        move_all_files(tmp_project_folder, processed_folder)
 
