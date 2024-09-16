@@ -1,4 +1,4 @@
-gpu_option: 'both'
+gpu_option: '0'
 cpu_enabled: False
 input_folder: '/mnt/gsdata/projects/other/agisoft_script_test'
 log_dir: '/mnt/data/tmp_orthos'

@@ -57,7 +57,7 @@ class MetashapeChunkProcessor:
         ortho_path = os.path.join(export_folder, f"{self.chunk.label}_orthomosaic.tif")
 
         compression = Metashape.ImageCompression()
-        compression.tiff_compression = Metashape.ImageCompression.TiffCompressionJPEG
+        compression.tiff_compression = Metashape.ImageCompression.TiffCompressionLZW
         compression.jpeg_quality = 90
         compression.tiff_big = True
         compression.tiff_overviews = True
@@ -83,9 +83,10 @@ class MetashapeProcessor:
         self.gpu_option = config["gpu_option"]
         self.cpu_enabled = config["cpu_enabled"]
         self.tmp_folder = config["tmp_folder"]
+        self.log_file = log_file
 
         # Set up logging
-        self.logger = setup_logger(log_file)
+        self.logger = setup_logger(self.log_file)
 
         # Configure GPUs based on the user's choice
         if self.gpu_option == 'both':
@@ -199,4 +200,7 @@ class MetashapeProcessor:
 
         # move all files
         move_all_files(tmp_project_folder, processed_folder)
+
+        # move log file
+        move_file(self.log_file, processed_folder)
 

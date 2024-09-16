@@ -25,31 +25,31 @@ def setup_logger(log_file):
     logger = logging.getLogger()  # Root logger
     
     # Avoid adding handlers multiple times if logger is already set
-    if not logger.hasHandlers():
-        logger.setLevel(logging.DEBUG)
+    #if not logger.hasHandlers():
+    logger.setLevel(logging.DEBUG)
 
-        # Create a file handler for logging to a file
-        file_handler = logging.FileHandler(log_file)
-        file_handler.setLevel(logging.DEBUG)
+    # Create a file handler for logging to a file
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setLevel(logging.DEBUG)
 
-        # Create a console handler for logging to the console
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.INFO)
+    # Create a console handler for logging to the console
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
 
-        # Define the log format
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    # Define the log format
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 
-        # Add formatter to both handlers
-        file_handler.setFormatter(formatter)
-        console_handler.setFormatter(formatter)
+    # Add formatter to both handlers
+    file_handler.setFormatter(formatter)
+    console_handler.setFormatter(formatter)
 
-        # Add the handlers to the logger
-        logger.addHandler(file_handler)
-        logger.addHandler(console_handler)
+    # Add the handlers to the logger
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
 
-        # Redirect stdout and stderr to the logger
-        sys.stdout = StreamToLogger(logger, logging.INFO)
-        sys.stderr = StreamToLogger(logger, logging.ERROR)
+    # Redirect stdout and stderr to the logger
+    sys.stdout = StreamToLogger(logger, logging.INFO)
+    sys.stderr = StreamToLogger(logger, logging.ERROR)
 
     return logger
 
