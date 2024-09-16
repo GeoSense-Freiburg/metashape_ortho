@@ -5,6 +5,9 @@ import logging
 from pipeline.utils import setup_logger, move_file, move_all_files, remove_lockfile
 from datetime import datetime
 
+import os
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
+
 class MetashapeProject:
     def __init__(self, project_path):
         self.doc = Metashape.Document()
