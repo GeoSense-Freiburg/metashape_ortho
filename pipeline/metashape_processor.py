@@ -73,7 +73,7 @@ class MetashapeChunkProcessor:
         self.chunk.exportRaster(path=ortho_path,
                                 source_data=Metashape.OrthomosaicData,
                                 image_compression=compression,
-                                save_alpha=False,
+                                save_alpha=True,
                                 white_background=True,
                                 projection=out_projection)
 
