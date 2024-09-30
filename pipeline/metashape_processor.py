@@ -195,15 +195,19 @@ class MetashapeProcessor:
                         except:
                             print("Something wrong with the chunk...")
                             pass
-                        
-        # Rename the processed folder from _unprocessed to _processed
-        processed_folder = folder_path.replace("_unprocessed", "_processed")
-        os.rename(folder_path, processed_folder)
-        self.logger.info(f"Renamed folder to: {processed_folder}")
 
-        # move all files
-        move_all_files(tmp_project_folder, processed_folder)
+        try:
+            # move all files
+            move_all_files(tmp_project_folder, folder_path)
 
-        # move log file
-        move_file(self.log_file, processed_folder)
+            # move log file
+            move_file(self.log_file, folder_path)
+
+            # Rename the processed folder from _unprocessed to _processed
+            processed_folder = folder_path.replace("_unprocessed", "_processed")
+            os.rename(folder_path, processed_folder)
+            self.logger.info(f"Renamed folder to: {processed_folder}")
+        except:
+            print("Something went wrong with the file handling...")
+            pass
 
