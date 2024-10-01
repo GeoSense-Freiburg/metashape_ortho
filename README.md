@@ -85,9 +85,10 @@ agisoft_ortho/
 │   ├── metashape_processor.py  # The core functions and classes
 │   ├── utils.py                # Helper functions are stored inside here
 ├── setup.py
+├── config_tests.yaml        # config file (still in test phase but works)
 ├── README.md
 ├── main.py             # the main pipeline call
-└── environment.yml     # conda environment
+└── environment.yml     # conda environment (soon to be added)
 ```
 
 ## Log Files
