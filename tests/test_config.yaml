@@ -1,0 +1,5 @@
+gpu_option: '0'
+cpu_enabled: False
+input_folder: '/mnt/gsdata/projects/other/testfiles_metashape/small_test'
+log_dir: '/mnt/data/tmp_orthos/log-files'
+tmp_folder: '/mnt/data/tmp_orthos'
