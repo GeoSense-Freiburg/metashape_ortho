@@ -4,6 +4,15 @@ from pipeline.metashape_processor import MetashapeProcessor
 from pipeline.utils import create_log_file, check_free_space, load_config
 
 def display_summary(input_folder, gpu_option, cpu_enabled, log_file):
+    """
+    Displays a summary of the current configuration and lists unprocessed folders and chunks.
+
+    Args:
+        input_folder (str): The folder containing the input data.
+        gpu_option (str): The GPU option used for processing.
+        cpu_enabled (bool): Whether CPU processing is enabled.
+        log_file (str): The path to the log file.
+    """
     print("\n--- Summary of Execution ---")
     print(f"Input Folder: {input_folder}")
     print(f"GPU Option: {gpu_option}")
@@ -22,23 +31,51 @@ def display_summary(input_folder, gpu_option, cpu_enabled, log_file):
                     if os.path.isdir(subfolder_path):
                         print(f"    - Chunk: {subfolder_name}")
     
-    check_free_space(100, "/mnt/data/")
-    print("\nDo you want to proceed with these settings? (yes/no)")
+    # Check free disk space before proceeding
+    try:
+        check_free_space(100, "/mnt/data/")
+        print("\nDo you want to proceed with these settings? (yes/no)")
+    except RuntimeError as e:
+        print(f"Error during free space check: {e}")
+        sys.exit(1)
 
 def main():
+    """
+    Main function that orchestrates the processing of input folders using Metashape.
+    
+    Steps:
+    1. Load configuration file.
+    2. Display summary of settings.
+    3. Confirm with the user to proceed.
+    4. Initialize and process folders using MetashapeProcessor.
+    """
     if len(sys.argv) != 2:
         print("Usage: python3 main.py <config_file>")
         sys.exit(1)
 
-    config = load_config(sys.argv[1])
-    print(config)
-    input_folder = config["input_folder"]
-    gpu_option = config["gpu_option"]
-    cpu_enabled = config["cpu_enabled"]
-    log_dir = config["log_dir"]
+    try:
+        # Load configuration from the specified YAML file
+        config = load_config(sys.argv[1])
+        input_folder = config["input_folder"]
+        gpu_option = config["gpu_option"]
+        cpu_enabled = config["cpu_enabled"]
+        log_dir = config["log_dir"]
+    except FileNotFoundError:
+        print(f"Config file {sys.argv[1]} not found.")
+        sys.exit(1)
+    except KeyError as e:
+        print(f"Missing required config key: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Unexpected error loading config: {e}")
+        sys.exit(1)
 
-    # Automatically create the log file with a timestamp in the "log-files" folder
-    log_file = create_log_file(log_dir)
+    # Automatically create the log file in the "log-files" folder
+    try:
+        log_file = create_log_file(log_dir)
+    except Exception as e:
+        print(f"Failed to create log file: {e}")
+        sys.exit(1)
 
     # Display summary and ask for confirmation
     display_summary(input_folder, gpu_option, cpu_enabled, log_file)
@@ -48,9 +85,13 @@ def main():
         print("Aborting the script.")
         sys.exit(0)
 
-    # Initialize and start the processing
-    processor = MetashapeProcessor(config, log_file)
-    processor.process_folders()
+    # Initialize MetashapeProcessor and process the folders
+    try:
+        processor = MetashapeProcessor(config, log_file)
+        processor.process_folders()
+    except Exception as e:
+        print(f"Error during processing: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
