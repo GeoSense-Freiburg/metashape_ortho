@@ -38,6 +38,7 @@ conda activate <your-environment-name>
 ### 3. install required/missing packages
 
 Ensure Metashape is installed in your environment. If not, follow the [Metashape installation guide](https://agisoft.freshdesk.com/support/solutions/articles/31000148930-how-to-install-metashape-stand-alone-python-module).
+installable environment file following soon...
 
 ## Usage
 
@@ -57,20 +58,14 @@ The folder structure of your data/flights should be like this:
 ...and so on
 ```
 
+It is important to note that every chunk displays one orthomosaic. It can also handle multispectral data (images according to naming convention from DJI, e.g. "...MS_NIR.TIF")
+And if you have your photos in several folders, but all belong to a single flight, you should first put them inside one chunk. Otherwise you'll receive several orthomosaics from the respective chunks (and not one big).
+
 ### 2. Run the script
 
 ```
-python3 main.py <input_folder> <gpu_option> <cpu_enabled>
+python3 main.py <config-file.yaml>
 ```
-
-#### To use GPU 0
-`python3 main.py <input_folder> 0 0`
-
-#### To use GPU 1
-`python3 main.py <input_folder> 1 0`
-
-#### To use both GPUs
-`python3 main.py <input_folder> both 0`
 
 ### 3. confirm the execution on your parameters
 
@@ -81,6 +76,10 @@ The script will display a summary of actions and ask for confirmation before pro
 ```
 agisoft_ortho/
 │
+├── tests/
+│   ├── test_config.yaml
+│   ├── test_main.py                
+│   ├── test_utils.py               
 ├── pipeline/
 │   ├── __init__.py
 │   ├── metashape_processor.py  # The core functions and classes
@@ -90,8 +89,6 @@ agisoft_ortho/
 ├── main.py             # the main pipeline call
 └── environment.yml     # conda environment
 ```
-
-
 
 ## Log Files
 
