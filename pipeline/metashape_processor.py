@@ -5,9 +5,6 @@ import logging
 from pipeline.utils import setup_logger, move_file, move_all_files, remove_lockfile
 from datetime import datetime
 
-import os
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
-
 class MetashapeProject:
     def __init__(self, project_path):
         self.doc = Metashape.Document()
@@ -92,13 +89,15 @@ class MetashapeProcessor:
         self.logger = setup_logger(self.log_file)
 
         # Configure GPUs based on the user's choice
-        if self.gpu_option == 'both':
+        if self.gpu_option == 'all':
             self.logger.info("Using both GPUs (0 and 1).")
             Metashape.app.gpu_mask = (1 << 0) | (1 << 1)  # Enable GPU 0 and GPU 1
         elif self.gpu_option == '0':
+            os.environ["CUDA_VISIBLE_DEVICES"]="0"
             self.logger.info("Using GPU 0 only.")
             Metashape.app.gpu_mask = 1 << 0  # Enable only GPU 0
         elif self.gpu_option == '1':
+            os.environ["CUDA_VISIBLE_DEVICES"]="1"
             self.logger.info("Using GPU 1 only.")
             Metashape.app.gpu_mask = 1 << 1  # Enable only GPU 1
         else:
