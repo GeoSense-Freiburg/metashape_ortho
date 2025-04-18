@@ -31,8 +31,8 @@ cd agisoft_ortho
 ### 2. create and activate a conda environment
 
 ```
-conda env create -f environment.yml
-conda activate <your-environment-name>
+conda env create -f environment.yaml
+conda activate metashape-pipeline
 ```
 
 ### 3. install required/missing packages
