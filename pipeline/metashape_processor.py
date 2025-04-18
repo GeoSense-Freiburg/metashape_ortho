@@ -71,7 +71,7 @@ class MetashapeChunkProcessor:
         Aligns the photos in the chunk by matching tie points and aligning cameras.
         """
         logging.info(f"Aligning photos for chunk: {self.chunk.label}")
-        self.chunk.matchPhotos(downscale=0, mask_tiepoints=False)
+        self.chunk.matchPhotos(downscale=1,reference_preselection=True,keypoint_limit=60000,tiepoint_limit=15000,filter_mask=False,guided_matching=True,mask_tiepoints=False)
         self.chunk.alignCameras()
 
     def build_depth_maps(self):
