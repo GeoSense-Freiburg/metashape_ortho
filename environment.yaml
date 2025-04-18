@@ -1,0 +1,26 @@
+name: metashape-pipeline
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+      - opencv-python
+      - numpy
+      - loguru
+      - psutil
+      - setuptools
+  - tqdm
+  - scikit-image
+  - pillow
+  - matplotlib
+
+# Notes:
+# 1. Metashape must be installed manually.
+#    Make sure to add Metashape Python bindings to PYTHONPATH like:
+#    export PYTHONPATH=/path/to/Metashape/python:$PYTHONPATH
+#
+# 2. Your `pipeline.utils` module must be available in the environment, 
+#    either via a local package or added to PYTHONPATH.
