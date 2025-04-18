@@ -88,7 +88,7 @@ agisoft_ortho/
 ├── config_tests.yaml        # config file (still in test phase but works)
 ├── README.md
 ├── main.py             # the main pipeline call
-└── environment.yml     # conda environment (soon to be added)
+└── environment.yml     # conda environment (to be tested)
 ```
 
 ## Log Files
