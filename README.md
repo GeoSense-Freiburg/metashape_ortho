@@ -103,6 +103,10 @@ log-files/
 └── ...
 ```
 
+## Potential issues
+
+If you run out of memory, try setting '''ulimit -s unlimited''' in your shell session before you run '''main.py'''.
+
 ## Development
 
 To contribute or modify the code:
